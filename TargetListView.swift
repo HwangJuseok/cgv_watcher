@@ -4,12 +4,14 @@ struct TargetListView: View {
     @StateObject private var networkManager = NetworkManager()
     @State private var targets: [UserTarget] = []
     
-    // 본인의 텔레그램 ID를 입력해 줘
-    let userId = "123456789" 
-    
     var body: some View {
         NavigationView {
             List {
+                if !AppSettings.isConfigured {
+                    Text("먼저 '설정' 탭에서 서버 주소와 텔레그램 ID를 입력해 주세요.")
+                        .foregroundColor(.orange)
+                }
+
                 ForEach(targets, id: \.self) { target in
                     VStack(alignment: .leading, spacing: 5) {
                         Text(AppData.movies[target.movie_code] ?? "알 수 없는 영화")
@@ -41,8 +43,9 @@ struct TargetListView: View {
     }
     
     func loadData() {
+        guard AppSettings.isConfigured else { return }
         Task {
-            targets = await networkManager.fetchTargets(userId: userId)
+            targets = await networkManager.fetchTargets(userId: AppSettings.userId)
         }
     }
     
@@ -50,7 +53,7 @@ struct TargetListView: View {
         for index in offsets {
             let item = targets[index]
             let requestItem = TargetRequest(
-                user_id: userId, 
+                user_id: AppSettings.userId, 
                 movie_code: item.movie_code, 
                 theater_code: item.theater_code, 
                 target_date: item.target_date, 

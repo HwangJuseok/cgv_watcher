@@ -1,0 +1,6 @@
+fastapi
+uvicorn[standard]
+pydantic
+curl_cffi
+python-telegram-bot>=20.0
+python-dotenv

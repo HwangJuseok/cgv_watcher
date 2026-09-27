@@ -1,7 +1,10 @@
 import asyncio
 import json
+import logging
 from curl_cffi.requests import AsyncSession
 import database
+
+logger = logging.getLogger("cgv_watcher.crawler")
 
 notified_set = set()
 
@@ -49,15 +52,19 @@ async def crawler_task(telegram_app=None):
                                                 msg = f"🚨 예매 오픈 감지!\n조건: {screen_type} 오픈\n바로 예매하기: http://m.cgv.co.kr/Schedule/?tc={theater_code}&t=T&d={target_date}"
                                                 try:
                                                     await telegram_app.bot.send_message(chat_id=uid, text=msg)
-                                                except:
-                                                    pass
+                                                except Exception as e:
+                                                    logger.warning(f"[크롤러] 텔레그램 알림 전송 실패 (chat_id={uid}): {e}")
                                         
                                         # 2. 아이폰(iOS) 알림 전송 (추후 구현)
                                         for uid in subscribers.get('ios', []):
                                             print(f"📱 iOS 기기({uid}) 푸시 알림 전송 필요!")
                                             
                     except Exception as e:
-                        pass
+                        # ⚠️ 이전에는 여기서 예외를 완전히 무시(pass)해서 디버깅이 어려웠습니다.
+                        # 지금은 어떤 조합에서 어떤 이유로 실패했는지 로그로 남깁니다.
+                        logger.warning(
+                            f"[크롤러] API 요청 실패 (movie={movie_code}, theater={theater_code}, date={target_date}): {e}"
+                        )
                     await asyncio.sleep(1.5) 
                 await asyncio.sleep(10) 
     except asyncio.CancelledError:

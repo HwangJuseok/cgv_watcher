@@ -3,9 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var networkManager = NetworkManager()
     
-    // 본인의 텔레그램 ID를 입력해 줘
-    @State private var userId: String = "123456789" 
-    
     @State private var selectedMovie = "30001323"
     @State private var selectedTheater = "0013"
     @State private var selectedScreen = "IMAX"
@@ -19,6 +16,13 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             Form {
+                if !AppSettings.isConfigured {
+                    Section {
+                        Label("먼저 '설정' 탭에서 서버 주소와 텔레그램 ID를 입력해 주세요.", systemImage: "exclamationmark.triangle")
+                            .foregroundColor(.orange)
+                    }
+                }
+
                 Section(header: Text("예매 감시 조건 설정")) {
                     Picker("영화", selection: $selectedMovie) {
                         ForEach(AppData.movies.keys.sorted(), id: \.self) { key in
@@ -47,9 +51,10 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.white)
                         .padding()
-                        .background(Color.blue)
+                        .background(AppSettings.isConfigured ? Color.blue : Color.gray)
                         .cornerRadius(10)
                 }
+                .disabled(!AppSettings.isConfigured)
             }
             .navigationTitle("CGV 알리미 리모컨")
             .alert(isPresented: $showAlert) {
@@ -67,7 +72,7 @@ struct ContentView: View {
     
     func submitTarget() {
         let target = TargetRequest(
-            user_id: userId,
+            user_id: AppSettings.userId,
             movie_code: selectedMovie,
             theater_code: selectedTheater,
             target_date: formattedTargetDate,

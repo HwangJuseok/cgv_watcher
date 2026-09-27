@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -9,8 +10,12 @@ import database
 from crawler import crawler_task
 from api import router as api_router
 import telegram_bot
+from config import TELEGRAM_TOKEN  # ✅ 하드코딩 대신 config.py(.env)에서 불러옴
 
-TELEGRAM_TOKEN = "***TELEGRAM_TOKEN_REMOVED***"
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 # 텔레그램 앱 객체 생성
 tg_app = Application.builder().token(TELEGRAM_TOKEN).build()
